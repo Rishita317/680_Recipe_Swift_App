@@ -11,7 +11,7 @@ import SwiftUI
 struct RecipeTestApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RecipeView()
         }
     }
 }
