@@ -9,6 +9,7 @@ import SwiftUI
 
 struct RecipeView: View {
     @State private var searchText = ""
+    let categories = ["All", "Breakfast", "Lunch", "Dinner", "Dessert", "Snacks"]
     
     var body: some View {
         NavigationStack {
@@ -20,16 +21,18 @@ struct RecipeView: View {
                     .cornerRadius(10)
                     .padding([.top, .horizontal])
                 
-                // Tabs (Categories)
+                // Tabs (Categories) - made clickable using NavigationLink
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 15) {
-                        ForEach(["All", "Breakfast", "Lunch", "Dinner", "Dessert", "Snacks"], id: \.self) { category in
-                            Text(category)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 8)
-                                .background(Color.blue.opacity(0.1))
-                                .foregroundColor(.blue)
-                                .cornerRadius(20)
+                        ForEach(categories, id: \.self) { category in
+                            NavigationLink(destination: RecipeListView(category: category)) {
+                                Text(category)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(Color.blue.opacity(0.1))
+                                    .foregroundColor(.blue)
+                                    .cornerRadius(20)
+                            }
                         }
                     }
                     .padding(.horizontal)
@@ -52,6 +55,9 @@ struct RecipeView: View {
 }
 
 struct RecipeCardView: View {
+    var title: String = "Recipe Title"
+    var description: String = "A short description of the recipe goes here."
+
     var body: some View {
         VStack(alignment: .leading) {
             Image("recipe_placeholder") // replace with actual image asset name
@@ -61,11 +67,11 @@ struct RecipeCardView: View {
                 .clipped()
                 .cornerRadius(15)
             
-            Text("Recipe Title")
+            Text(title)
                 .font(.headline)
                 .padding(.top, 5)
             
-            Text("A short description of the recipe goes here.")
+            Text(description)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
         }
@@ -76,7 +82,30 @@ struct RecipeCardView: View {
     }
 }
 
+struct RecipeListView: View {
+    var category: String
+    
+    var body: some View {
+        VStack {
+            Text("\(category) Recipes")
+                .font(.largeTitle)
+                .bold()
+                .padding()
+
+            // List of recipes for the selected category (placeholder for now)
+            ScrollView {
+                LazyVStack(spacing: 20) {
+                    ForEach(0..<10) { index in
+                        RecipeCardView(title: "\(category) Recipe \(index + 1)", description: "Delicious \(category.lowercased()) recipe number \(index + 1).")
+                    }
+                }
+                .padding()
+            }
+        }
+        .navigationTitle(category)
+    }
+}
+
 #Preview {
     RecipeView()
 }
-
