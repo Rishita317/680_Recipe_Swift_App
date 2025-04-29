@@ -7,13 +7,38 @@
 
 import SwiftUI
 
+struct Recipe: Identifiable {
+    let id = UUID()
+    let title: String
+    let description: String
+    let category: String
+}
+
 struct RecipeView: View {
     @State private var searchText = ""
+    @State private var selectedCategory = "All"
+    
     let categories = ["All", "Breakfast", "Lunch", "Dinner", "Dessert", "Snacks"]
+    
+    @State private var recipes: [Recipe] = [
+        Recipe(title: "Pancakes", description: "Fluffy breakfast pancakes.", category: "Breakfast"),
+        Recipe(title: "Caesar Salad", description: "Fresh and crisp.", category: "Lunch"),
+        Recipe(title: "Grilled Chicken", description: "Perfectly grilled for dinner.", category: "Dinner"),
+        Recipe(title: "Chocolate Cake", description: "Rich and moist dessert.", category: "Dessert"),
+        Recipe(title: "Fruit Smoothie", description: "Refreshing snack option.", category: "Snacks")
+    ]
+    
+    var filteredRecipes: [Recipe] {
+        recipes.filter {
+            (searchText.isEmpty || $0.title.localizedCaseInsensitiveContains(searchText)) &&
+            (selectedCategory == "All" || $0.category == selectedCategory)
+        }
+    }
     
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                
                 // Search Bar
                 TextField("Search recipes...", text: $searchText)
                     .padding(10)
@@ -21,15 +46,17 @@ struct RecipeView: View {
                     .cornerRadius(10)
                     .padding([.top, .horizontal])
                 
-                // Tabs (Categories) - made clickable using NavigationLink
+                // Tabs (Categories)
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 15) {
                         ForEach(categories, id: \.self) { category in
-                            NavigationLink(destination: RecipeListView(category: category)) {
+                            Button(action: {
+                                selectedCategory = category
+                            }) {
                                 Text(category)
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 8)
-                                    .background(Color.blue.opacity(0.1))
+                                    .background(selectedCategory == category ? Color.blue.opacity(0.3) : Color.blue.opacity(0.1))
                                     .foregroundColor(.blue)
                                     .cornerRadius(20)
                             }
@@ -38,12 +65,12 @@ struct RecipeView: View {
                     .padding(.horizontal)
                     .padding(.top, 5)
                 }
-
+                
                 // Recipe Cards
                 ScrollView {
                     LazyVStack(spacing: 20) {
-                        ForEach(0..<10) { index in
-                            RecipeCardView()
+                        ForEach(filteredRecipes) { recipe in
+                            RecipeCardView(title: recipe.title, description: recipe.description)
                         }
                     }
                     .padding()
@@ -55,17 +82,18 @@ struct RecipeView: View {
 }
 
 struct RecipeCardView: View {
-    var title: String = "Recipe Title"
-    var description: String = "A short description of the recipe goes here."
+    var title: String
+    var description: String
 
     var body: some View {
         VStack(alignment: .leading) {
-            Image("recipe_placeholder") // replace with actual image asset name
+            Image("recipe_placeholder") // Make sure you have a placeholder image asset
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(height: 180)
                 .clipped()
                 .cornerRadius(15)
+                .accessibilityLabel("\(title) image")
             
             Text(title)
                 .font(.headline)
@@ -84,6 +112,7 @@ struct RecipeCardView: View {
 
 struct RecipeListView: View {
     var category: String
+    var recipes: [Recipe]
     
     var body: some View {
         VStack {
@@ -91,12 +120,11 @@ struct RecipeListView: View {
                 .font(.largeTitle)
                 .bold()
                 .padding()
-
-            // List of recipes for the selected category (placeholder for now)
+            
             ScrollView {
                 LazyVStack(spacing: 20) {
-                    ForEach(0..<10) { index in
-                        RecipeCardView(title: "\(category) Recipe \(index + 1)", description: "Delicious \(category.lowercased()) recipe number \(index + 1).")
+                    ForEach(recipes.filter { $0.category == category || category == "All" }) { recipe in
+                        RecipeCardView(title: recipe.title, description: recipe.description)
                     }
                 }
                 .padding()
