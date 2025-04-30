@@ -5,6 +5,9 @@ struct RecipeDetailView: View {
     @State private var recipeDetail: RecipeDetail?
     @State private var isLoading = true
     @State private var hasError = false
+    @State private var userRating: Int = 0
+    @State private var isLiked: Bool = false
+    @State private var newComment: String = ""
 
     var body: some View {
         VStack {
@@ -31,9 +34,24 @@ struct RecipeDetailView: View {
                             .cornerRadius(15)
                         }
 
-                        Text(recipe.recipeName)
-                            .font(.title)
-                            .bold()
+                        HStack {
+                            Text(recipe.recipeName)
+                                .font(.title)
+                                .bold()
+                            Spacer()
+                            Button(action: {
+                                isLiked.toggle()
+                                // Add backend update here
+                            }) {
+                                Image(systemName: isLiked ? "heart.fill" : "heart")
+                                    .foregroundColor(isLiked ? .red : .gray)
+                            }
+                            Button(action: {
+                                shareRecipe(recipe)
+                            }) {
+                                Image(systemName: "square.and.arrow.up")
+                            }
+                        }
 
                         if let description = recipe.description {
                             Text(description)
@@ -50,6 +68,7 @@ struct RecipeDetailView: View {
                                 .font(.subheadline)
                         }
 
+                        // Ingredients
                         if let ingredients = recipe.ingredients {
                             Text("Ingredients:")
                                 .font(.headline)
@@ -59,6 +78,7 @@ struct RecipeDetailView: View {
                             }
                         }
 
+                        // Steps
                         if let steps = recipe.steps {
                             Text("Steps:")
                                 .font(.headline)
@@ -68,6 +88,23 @@ struct RecipeDetailView: View {
                             }
                         }
 
+                        // User Rating
+                        VStack(alignment: .leading) {
+                            Text("Your Rating:")
+                                .font(.headline)
+                            HStack {
+                                ForEach(1...5, id: \.self) { star in
+                                    Image(systemName: star <= userRating ? "star.fill" : "star")
+                                        .foregroundColor(.yellow)
+                                        .onTapGesture {
+                                            userRating = star
+                                            // Call backend to submit rating
+                                        }
+                                }
+                            }
+                        }
+
+                        // Reviews
                         if let reviews = recipe.reviews {
                             Text("Reviews:")
                                 .font(.headline)
@@ -82,6 +119,19 @@ struct RecipeDetailView: View {
                                         .font(.body)
                                 }
                                 .padding(.vertical, 4)
+                            }
+                        }
+
+                        // Comment Input
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Leave a Comment:")
+                                .font(.headline)
+                            TextField("Write something...", text: $newComment)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                            Button("Post Comment") {
+                                // Submit comment logic here
+                                print("Posting comment: \(newComment)")
+                                newComment = ""
                             }
                         }
                     }
@@ -108,8 +158,6 @@ struct RecipeDetailView: View {
             isLoading = false
             return
         }
-        print(recipeId)
-        print(url)
 
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
@@ -129,10 +177,12 @@ struct RecipeDetailView: View {
         }
         isLoading = false
     }
-}
 
-struct RecipeDetailResponse: Decodable {
-    let statusCode: Int
-    let statusMessage: String
-    let data: RecipeDetail
+    func shareRecipe(_ recipe: RecipeDetail) {
+        let activityVC = UIActivityViewController(activityItems: [recipe.recipeName], applicationActivities: nil)
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootVC = windowScene.windows.first?.rootViewController {
+            rootVC.present(activityVC, animated: true)
+        }
+    }
 }

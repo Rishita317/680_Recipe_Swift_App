@@ -18,3 +18,9 @@ struct APIResponseWithUser: Decodable {
     let statusMessage: String
     let data: User
 }
+
+struct RecipeDetailResponse: Decodable {
+    let statusCode: Int
+    let statusMessage: String
+    let data: RecipeDetail
+}
