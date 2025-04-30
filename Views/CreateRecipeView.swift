@@ -87,25 +87,56 @@ struct CreateRecipeView: View {
                 // Steps Section
                 Section(header: Text("Preparation Steps")) {
                     ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
-                        VStack(alignment: .leading) {
+                        VStack(alignment: .leading, spacing: 8) {
                             Text("Step \(index + 1)")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
-                            
+
                             TextField("Step description", text: Binding(
                                 get: { steps[index].stepDesc },
-                                set: { steps[index].stepDesc = $0 }
+                                set: { newValue in
+                                    var updatedStep = steps[index]
+                                    updatedStep = RecipeStep(stepDesc: newValue, stepImg: updatedStep.stepImg)
+                                    steps[index] = updatedStep
+                                }
                             ), axis: .vertical)
                             .lineLimit(3...)
-                            
-                            // You could add image upload for each step here if needed
+
+                            if let imageData = Data(base64Encoded: steps[index].stepImg),
+                               let uiImage = UIImage(data: imageData) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 100, height: 100)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+
+                            PhotosPicker(selection: Binding<PhotosPickerItem?>(
+                                get: { nil },
+                                set: { newItem in
+                                    Task {
+                                        if let newItem,
+                                           let data = try? await newItem.loadTransferable(type: Data.self),
+                                           let image = UIImage(data: data),
+                                           let jpegData = image.jpegData(compressionQuality: 0.7) {
+                                            let base64 = jpegData.base64EncodedString()
+                                            var updatedStep = steps[index]
+                                            updatedStep = RecipeStep(stepDesc: updatedStep.stepDesc, stepImg: base64)
+                                            steps[index] = updatedStep
+                                        }
+                                    }
+                                }
+                            ), matching: .images) {
+                                Label("Add Step Image", systemImage: "photo")
+                            }
                         }
+                        .padding(.vertical, 5)
                     }
-                    
+
                     Button(action: addStep) {
                         Label("Add Step", systemImage: "plus")
                     }
-                    
+
                     if steps.count > 1 {
                         Button(action: removeStep) {
                             Label("Remove Last Step", systemImage: "minus")
@@ -113,6 +144,7 @@ struct CreateRecipeView: View {
                         }
                     }
                 }
+
             }
             .navigationTitle("Create Recipe")
             .navigationBarTitleDisplayMode(.inline)
