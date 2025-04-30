@@ -15,6 +15,7 @@
 		D2A340232DC07C100076B7F8 /* APIResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2A340222DC07C100076B7F8 /* APIResponse.swift */; };
 		D2A340252DC07C280076B7F8 /* RecipeCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2A340242DC07C280076B7F8 /* RecipeCardView.swift */; };
 		D2A340272DC07C590076B7F8 /* RecipeSearchResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2A340262DC07C590076B7F8 /* RecipeSearchResultView.swift */; };
+		D2A340292DC1C25F0076B7F8 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2A340282DC1C25F0076B7F8 /* Constants.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +28,7 @@
 		D2A340222DC07C100076B7F8 /* APIResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIResponse.swift; sourceTree = "<group>"; };
 		D2A340242DC07C280076B7F8 /* RecipeCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeCardView.swift; sourceTree = "<group>"; };
 		D2A340262DC07C590076B7F8 /* RecipeSearchResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeSearchResultView.swift; sourceTree = "<group>"; };
+		D2A340282DC1C25F0076B7F8 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,6 +85,7 @@
 		D2A3400D2DC078370076B7F8 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				D2A340282DC1C25F0076B7F8 /* Constants.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -161,6 +164,7 @@
 				D2A340272DC07C590076B7F8 /* RecipeSearchResultView.swift in Sources */,
 				D2A340252DC07C280076B7F8 /* RecipeCardView.swift in Sources */,
 				D2A340232DC07C100076B7F8 /* APIResponse.swift in Sources */,
+				D2A340292DC1C25F0076B7F8 /* Constants.swift in Sources */,
 				D2A340002DC0189A0076B7F8 /* RecipeView.swift in Sources */,
 				D2A3401F2DC07AD70076B7F8 /* RecipeApp.swift in Sources */,
 			);

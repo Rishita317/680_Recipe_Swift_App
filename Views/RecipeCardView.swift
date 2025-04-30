@@ -1,16 +1,10 @@
-//
-//  RecipeCardView.swift
-//  Recipe
-//
-//  Created by gu xu on 4/28/25.
-//
-
 import SwiftUI
 
 struct RecipeCardView: View {
     var title: String
     var description: String
     var pictureURL: String
+    var rating: Double
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -45,6 +39,19 @@ struct RecipeCardView: View {
             Text(description)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
+                .padding(.bottom, 4)
+            
+            HStack(spacing: 2) {
+                ForEach(0..<5) { i in
+                    Image(systemName: i < Int(rating) ? "star.fill" : (rating >= Double(i) + 0.5 ? "star.lefthalf.fill" : "star"))
+                        .foregroundColor(.yellow)
+                }
+                
+                Text(String(format: "%.1f", rating))
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+                    .padding(.leading, 6)
+            }
         }
         .padding()
         .background(Color.white)
@@ -56,8 +63,8 @@ struct RecipeCardView: View {
 #Preview {
     RecipeCardView(
         title: "Sample Recipe",
-        description: "Rating: 5.0",
-        pictureURL: ""
+        description: "A delicious test recipe",
+        pictureURL: "",
+        rating: 4.5
     )
 }
-

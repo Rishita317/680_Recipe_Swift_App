@@ -8,21 +8,7 @@ struct RecipeView: View {
     @State private var selectedCategory = "All"
     let categories = ["All", "Breakfast", "Lunch", "Dinner", "Dessert", "Snacks"]
     
-    @State private var recipes: [Recipe] = [
-        Recipe(
-            recipeId: 1,
-            recipeName: "Chef John's Nashville Hot Chicken",
-            category: "Dinner",
-            rating: "4.0",
-            recipePicture: "https://www.allrecipes.com/thmb/VpE1xykUpZ9GsVbCeQjR2oCTvME=/0x512/filters:no_upscale():max_bytes(150000):strip_icc():format(webp)/254804-chef-johns-nashville-hot-chicken-DDMFS-4x3-c1192bac5dfc43bba55056a33a17153f.jpg",
-            createTime: "2024-03-19 03:32:31",
-            creatorId: 1,
-            modifyTime: "2024-03-19 22:54:44",
-            postTime: "2024-03-18 20:32:12",
-            recipeType: 1,
-            status: 1
-        )
-    ]
+    @State private var recipes: [Recipe] = [Recipe.defaultRecipe]
     
     var filteredRecipes: [Recipe] {
         recipes.filter {
@@ -81,8 +67,9 @@ struct RecipeView: View {
                         ForEach(filteredRecipes, id: \.recipeId) { recipe in
                             RecipeCardView(
                                 title: recipe.recipeName,
-                                description: recipe.description,
-                                pictureURL: recipe.recipePicture
+                                description: recipe.description ?? "",
+                                pictureURL: recipe.recipePicture,
+                                rating: recipe.rating
                             )
                         }
                     }
@@ -98,20 +85,23 @@ struct RecipeView: View {
     
     @MainActor
     func fetchRandomRecipes() async {
-        guard let url = URL(string: "https://yourapi.com/api/recipe/random") else { return }
+        guard let url = URL(string: API.randomURL) else { return }
         
         do {
             var request = URLRequest(url: url)
             request.httpMethod = "GET"
             let (data, response) = try await URLSession.shared.data(for: request)
+
             guard let httpResponse = response as? HTTPURLResponse,
                   (200...299).contains(httpResponse.statusCode) else { return }
+
             let apiResponse = try JSONDecoder().decode(APIResponse.self, from: data)
             if apiResponse.statusCode == 0 {
                 recipes = apiResponse.data
             }
         } catch {
-            print("Fetch error: \(error.localizedDescription)")
+            print("❌ Failed to load recipes: \(error.localizedDescription)")
+            recipes = [Recipe.defaultRecipe]
         }
     }
 }

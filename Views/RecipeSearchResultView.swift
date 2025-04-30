@@ -1,10 +1,3 @@
-//
-//  RecipeSearchResultView.swift
-//  Recipe
-//
-//  Created by gu xu on 4/28/25.
-//
-
 import SwiftUI
 
 struct RecipeSearchResultView: View {
@@ -34,8 +27,9 @@ struct RecipeSearchResultView: View {
                         ForEach(recipes, id: \.recipeId) { recipe in
                             RecipeCardView(
                                 title: recipe.recipeName,
-                                description: recipe.description,
-                                pictureURL: recipe.recipePicture
+                                description: recipe.description ?? "",
+                                pictureURL: recipe.recipePicture,
+                                rating: recipe.rating
                             )
                         }
                     }
@@ -51,15 +45,19 @@ struct RecipeSearchResultView: View {
     
     @MainActor
     func searchRecipes() async {
-        guard let query = keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: "https://yourapi.com/api/recipe/search?q=\(query)") else { return }
+        guard let url = URL(string: API.searchURL(for: keyword)) else { return }
         
         do {
             var request = URLRequest(url: url)
             request.httpMethod = "GET"
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let httpResponse = response as? HTTPURLResponse,
-                  (200...299).contains(httpResponse.statusCode) else { return }
+                  (200...299).contains(httpResponse.statusCode) else {
+                showNoResults = true
+                isLoading = false
+                return
+            }
+
             let apiResponse = try JSONDecoder().decode(APIResponse.self, from: data)
             if apiResponse.statusCode == 0 {
                 if apiResponse.data.isEmpty {
@@ -72,10 +70,9 @@ struct RecipeSearchResultView: View {
                 showNoResults = true
             }
         } catch {
-            print("Search error: \(error.localizedDescription)")
+            print("❌ Search error: \(error.localizedDescription)")
             showNoResults = true
         }
         isLoading = false
     }
 }
-
