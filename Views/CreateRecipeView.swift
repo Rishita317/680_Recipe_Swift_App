@@ -9,13 +9,13 @@ struct CreateRecipeView: View {
     @State private var category = "Dinner"
     @State private var description = ""
     @State private var cookingTime = ""
-    @State private var difficulty = 1
+    @State private var difficulty = "Easy"
     @State private var steps: [RecipeStep] = [RecipeStep(stepDesc: "", stepImg: "")]
     @State private var selectedImage: UIImage?
     @State private var photosPickerItem: PhotosPickerItem?
     
     let categories = ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack"]
-    let difficultyLevels = [1, 2, 3, 4, 5]
+    let difficultyLevels = ["Easy", "Meadium", "Hard"]
     
     var body: some View {
         NavigationStack {
