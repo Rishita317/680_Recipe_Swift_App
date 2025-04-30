@@ -1,25 +1,29 @@
 import SwiftUI
 
 struct RecipeView: View {
+    @AppStorage("isLoggedIn") var isLoggedIn: Bool = false
+    @AppStorage("userName") var userName: String = ""
+
     @State private var searchText = ""
     @State private var isSearching = false
     @State private var searchKeyword = ""
-    
+
     @State private var selectedCategory = "All"
     let categories = ["All", "Breakfast", "Lunch", "Dinner", "Dessert", "Snacks"]
-    
+
     @State private var recipes: [Recipe] = [Recipe.defaultRecipe]
-    
+
     var filteredRecipes: [Recipe] {
         recipes.filter {
             (searchText.isEmpty || $0.recipeName.localizedCaseInsensitiveContains(searchText)) &&
             (selectedCategory == "All" || $0.category == selectedCategory)
         }
     }
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+
                 // Search bar
                 HStack {
                     TextField("Search recipes...", text: $searchText)
@@ -33,14 +37,14 @@ struct RecipeView: View {
                                 searchText = ""
                             }
                         }
-                    
+
                     NavigationLink(destination: RecipeSearchResultView(keyword: searchKeyword), isActive: $isSearching) {
                         EmptyView()
                     }
                     .hidden()
                 }
                 .padding([.top, .horizontal])
-                
+
                 // Categories
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 15) {
@@ -60,17 +64,12 @@ struct RecipeView: View {
                     .padding(.horizontal)
                     .padding(.top, 5)
                 }
-                
+
                 // Recipe List
                 ScrollView {
                     LazyVStack(spacing: 20) {
                         ForEach(filteredRecipes, id: \.recipeId) { recipe in
-                            RecipeCardView(
-                                title: recipe.recipeName,
-                                description: recipe.description ?? "",
-                                pictureURL: recipe.recipePicture,
-                                rating: recipe.rating
-                            )
+                            RecipeCardView(recipe: recipe)
                         }
                     }
                     .padding()
@@ -82,11 +81,11 @@ struct RecipeView: View {
             await fetchRandomRecipes()
         }
     }
-    
+
     @MainActor
     func fetchRandomRecipes() async {
         guard let url = URL(string: API.randomURL) else { return }
-        
+
         do {
             var request = URLRequest(url: url)
             request.httpMethod = "GET"

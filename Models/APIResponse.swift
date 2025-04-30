@@ -13,3 +13,8 @@ struct APIResponse: Decodable {
     let data: [Recipe]
 }
 
+struct APIResponseWithUser: Decodable {
+    let statusCode: Int
+    let statusMessage: String
+    let data: User
+}

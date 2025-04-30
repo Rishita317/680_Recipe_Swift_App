@@ -25,12 +25,7 @@ struct RecipeSearchResultView: View {
                 ScrollView {
                     LazyVStack(spacing: 20) {
                         ForEach(recipes, id: \.recipeId) { recipe in
-                            RecipeCardView(
-                                title: recipe.recipeName,
-                                description: recipe.description ?? "",
-                                pictureURL: recipe.recipePicture,
-                                rating: recipe.rating
-                            )
+                            RecipeCardView(recipe: recipe)
                         }
                     }
                     .padding()
