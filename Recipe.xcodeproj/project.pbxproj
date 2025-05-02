@@ -45,6 +45,7 @@
 		D2A340362DC1D8940076B7F8 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		D2A340382DC1D8FA0076B7F8 /* CreateRecipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateRecipeView.swift; sourceTree = "<group>"; };
 		D2A3403A2DC1D90D0076B7F8 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		D2A3403E2DC4CB0F0076B7F8 /* Recipe-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Recipe-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,6 +62,7 @@
 		D2A33FF12DC0189A0076B7F8 = {
 			isa = PBXGroup;
 			children = (
+				D2A3403E2DC4CB0F0076B7F8 /* Recipe-Info.plist */,
 				D2A3401B2DC07AD70076B7F8 /* Assets.xcassets */,
 				D2A3401A2DC07AD70076B7F8 /* Preview Content */,
 				D2A3401C2DC07AD70076B7F8 /* RecipeApp.swift */,
@@ -334,6 +336,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Recipe-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -362,6 +365,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Recipe-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

@@ -8,7 +8,7 @@
 import Foundation
 
 struct API {
-    static let baseURL = "http://localhost:5656/api"
+    static let baseURL = "http://8.153.165.146:5656/api"
     
     static var randomURL: String {
         return "\(baseURL)/recipe/random"
