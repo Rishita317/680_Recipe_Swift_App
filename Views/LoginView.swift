@@ -4,6 +4,8 @@ struct LoginView: View {
     @AppStorage("isLoggedIn") var isLoggedIn: Bool = false
     @AppStorage("userName") var userName: String = ""
     @AppStorage("lastRegisteredEmail") var lastRegisteredEmail: String = ""
+    @Environment(\.dismiss) private var dismiss
+
 
     @State private var email: String = ""
     @State private var password: String = ""
@@ -87,6 +89,7 @@ struct LoginView: View {
                 if decoded.statusCode == 0 {
                     userName = decoded.data.userName
                     isLoggedIn = true
+                    dismiss()
                 } else {
                     errorMessage = decoded.statusMessage
                 }
