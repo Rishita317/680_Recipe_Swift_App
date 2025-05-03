@@ -4,6 +4,8 @@ struct LoginView: View {
     @AppStorage("isLoggedIn") var isLoggedIn: Bool = false
     @AppStorage("userName") var userName: String = ""
     @AppStorage("lastRegisteredEmail") var lastRegisteredEmail: String = ""
+    @AppStorage("userId") var userId: Int = 0
+
     @Environment(\.dismiss) private var dismiss
 
 
@@ -88,6 +90,7 @@ struct LoginView: View {
             DispatchQueue.main.async {
                 if decoded.statusCode == 0 {
                     userName = decoded.data.userName
+                    userId = decoded.data.userId
                     isLoggedIn = true
                     dismiss()
                 } else {
@@ -106,4 +109,5 @@ struct LoginResponse: Decodable {
 
 struct LoginUserData: Decodable {
     let userName: String
+    let userId: Int
 }

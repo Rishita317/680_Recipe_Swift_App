@@ -36,4 +36,12 @@ struct API {
     static var createRecipeURL: String {
         return "\(baseURL)/recipe/create"
     }
+    
+    static var favoriteRecipeURL: String {
+        return "\(baseURL)/recipe/favorite"
+    }
+    
+    static var rateAndCommentURL: String {
+        return "\(baseURL)/recipe/review"
+    }
 }

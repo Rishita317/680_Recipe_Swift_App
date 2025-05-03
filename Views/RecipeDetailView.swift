@@ -8,6 +8,8 @@ struct RecipeDetailView: View {
     @State private var userRating: Int = 0
     @State private var isLiked: Bool = false
     @State private var newComment: String = ""
+    @State private var didJustSubmitReview = false
+    @AppStorage("userId") private var userId: Int?
 
     var body: some View {
         VStack {
@@ -16,13 +18,13 @@ struct RecipeDetailView: View {
                     .padding()
             } else if let recipe = recipeDetail {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(spacing: 20) {
                         if let url = URL(string: recipe.recipePicture) {
                             AsyncImage(url: url) { phase in
                                 if let image = phase.image {
                                     image
                                         .resizable()
-                                        .aspectRatio(contentMode: .fill)
+                                        .scaledToFill()
                                 } else if phase.error != nil {
                                     Color.red
                                 } else {
@@ -32,122 +34,167 @@ struct RecipeDetailView: View {
                             .frame(height: 200)
                             .clipped()
                             .cornerRadius(15)
+                            .padding(.horizontal)
                         }
 
-                        HStack {
-                            Text(recipe.recipeName)
-                                .font(.title)
-                                .bold()
-                            Spacer()
-                            Button(action: {
-                                isLiked.toggle()
-                                // Add backend update here
-                            }) {
-                                Image(systemName: isLiked ? "heart.fill" : "heart")
-                                    .foregroundColor(isLiked ? .red : .gray)
-                            }
-                            Button(action: {
-                                shareRecipe(recipe)
-                            }) {
-                                Image(systemName: "square.and.arrow.up")
-                            }
-                        }
-
-                        if let description = recipe.description {
-                            Text(description)
-                                .font(.body)
-                        }
-
-                        if let cookingTime = recipe.cookingTime {
-                            Text("Cooking Time: \(cookingTime)")
-                                .font(.subheadline)
-                        }
-
-                        if let difficulty = recipe.difficulty {
-                            Text("Difficulty: \(difficulty)/5")
-                                .font(.subheadline)
-                        }
-
-                        // Ingredients
-                        if let ingredients = recipe.ingredients {
-                            Text("Ingredients:")
-                                .font(.headline)
-                            ForEach(ingredients, id: \.ingredientId) { ingredient in
-                                Text("- \(ingredient.amount) \(ingredient.ingredientName)")
-                                    .font(.body)
-                            }
-                        }
-
-                        // Steps
-                        if let steps = recipe.steps {
-                            Text("Steps:")
-                                .font(.headline)
-                            ForEach(steps.indices, id: \.self) { index in
-                                Text("\(index + 1). \(steps[index].stepDesc)")
-                                    .font(.body)
-                            }
-                        }
-
-                        // User Rating
-                        VStack(alignment: .leading) {
-                            Text("Your Rating:")
-                                .font(.headline)
+                        VStack(alignment: .leading, spacing: 8) {
                             HStack {
-                                ForEach(1...5, id: \.self) { star in
+                                Text(recipe.recipeName)
+                                    .font(.title)
+                                    .bold()
+                                Spacer()
+                                Button {
+                                    toggleFavorite()
+                                } label: {
+                                    Image(systemName: isLiked ? "heart.fill" : "heart")
+                                        .foregroundColor(isLiked ? .red : .gray)
+                                }
+                                Button {
+                                    shareRecipe(recipe)
+                                } label: {
+                                    Image(systemName: "square.and.arrow.up")
+                                }
+                            }
+                            
+                            if recipe.rating > 0 {
+                                HStack(spacing: 4) {
+                                    ForEach(1...5, id: \.self) { star in
+                                        Image(systemName: star <= Int(recipe.rating.rounded()) ? "star.fill" : "star")
+                                            .resizable()
+                                            .frame(width: 16, height: 16)
+                                            .foregroundColor(.yellow)
+                                    }
+                                    Text(String(format: "%.1f", recipe.rating))
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                }
+                            }
+
+
+                            if let description = recipe.description {
+                                Text(description)
+                                    .font(.body)
+                                    .foregroundColor(.secondary)
+                            }
+
+                            HStack(spacing: 16) {
+                                if let cookingTime = recipe.cookingTime {
+                                    Label(cookingTime, systemImage: "clock")
+                                }
+                                if let difficulty = recipe.difficulty {
+                                    let label = ["Easy", "Medium", "Hard"][max(0, min(2, difficulty - 1))]
+                                    Label(label, systemImage: "flame.fill")
+                                }
+                            }
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                        }
+                        .padding(.horizontal)
+
+                        Divider()
+
+                        if let ingredients = recipe.ingredients {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("🧂 Ingredients")
+                                    .font(.headline)
+                                ForEach(ingredients, id: \.ingredientId) { ingredient in
+                                    Text("• \(ingredient.amount) \(ingredient.ingredientName)")
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding()
+                            .background(Color(.systemGray6))
+                            .cornerRadius(12)
+                            .padding(.horizontal)
+
+                        }
+
+                        if let steps = recipe.steps {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("📋 Steps")
+                                    .font(.headline)
+                                ForEach(steps.indices, id: \.self) { i in
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Step \(i + 1):").bold()
+                                        Text(steps[i].stepDesc)
+                                    }
+                                    .padding(.vertical, 4)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding()
+                            .background(Color(.systemGray6))
+                            .cornerRadius(12)
+                            .padding(.horizontal)
+                        }
+
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("⭐️ Leave a Review")
+                                .font(.headline)
+
+                            HStack {
+                                ForEach(1...5, id: \ .self) { star in
                                     Image(systemName: star <= userRating ? "star.fill" : "star")
+                                        .resizable()
+                                        .frame(width: 24, height: 24)
                                         .foregroundColor(.yellow)
                                         .onTapGesture {
                                             userRating = star
-                                            // Call backend to submit rating
                                         }
                                 }
                             }
-                        }
 
-                        // Reviews
+                            TextField("Write a comment...", text: $newComment, axis: .vertical)
+                                .textFieldStyle(.roundedBorder)
+                                .lineLimit(2...4)
+
+                            Button("Submit Review") {
+                                submitReview()
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(12)
+                        .padding(.horizontal)
+
                         if let reviews = recipe.reviews {
-                            Text("Reviews:")
-                                .font(.headline)
-                            ForEach(reviews, id: \.reviewId) { review in
-                                VStack(alignment: .leading) {
-                                    Text("\(review.userName):")
-                                        .font(.subheadline)
-                                        .bold()
-                                    Text("Rating: \(review.rating)/5")
-                                        .font(.subheadline)
-                                    Text(review.comment)
-                                        .font(.body)
-                                }
-                                .padding(.vertical, 4)
-                            }
-                        }
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("💬 Reviews")
+                                    .font(.headline)
 
-                        // Comment Input
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Leave a Comment:")
-                                .font(.headline)
-                            TextField("Write something...", text: $newComment)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                            Button("Post Comment") {
-                                // Submit comment logic here
-                                print("Posting comment: \(newComment)")
-                                newComment = ""
+                                ForEach(reviews, id: \ .reviewId) { review in
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        HStack {
+                                            Text(review.userName).bold()
+                                            Spacer()
+                                            Text("⭐️ \(review.rating)")
+                                                .foregroundColor(.yellow)
+                                        }
+                                        Text(review.comment)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    .padding()
+                                    .background(Color.white)
+                                    .cornerRadius(10)
+                                    .shadow(radius: 1)
+                                }
                             }
+                            .padding(.horizontal)
                         }
                     }
-                    .padding()
+                    .padding(.bottom)
                 }
             } else if hasError {
                 Text("Failed to load recipe details.")
                     .foregroundColor(.red)
+                    .padding()
             }
         }
         .navigationTitle("Recipe Details")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            Task {
-                await fetchRecipeDetail()
-            }
+            Task { await fetchRecipeDetail() }
         }
     }
 
@@ -171,6 +218,14 @@ struct RecipeDetailView: View {
 
             let apiResponse = try JSONDecoder().decode(RecipeDetailResponse.self, from: data)
             recipeDetail = apiResponse.data
+            isLiked = apiResponse.data.status == 1
+            if !didJustSubmitReview,
+               let userId = userId,
+               let existingReview = apiResponse.data.reviews?.first(where: { $0.userId == userId }) {
+                userRating = existingReview.rating
+                newComment = existingReview.comment
+            }
+            didJustSubmitReview = false // reset for future reloads
         } catch {
             print("❌ Error fetching recipe detail: \(error.localizedDescription)")
             hasError = true
@@ -184,5 +239,60 @@ struct RecipeDetailView: View {
            let rootVC = windowScene.windows.first?.rootViewController {
             rootVC.present(activityVC, animated: true)
         }
+    }
+
+    func toggleFavorite() {
+
+        guard let userId else { return }
+        let status = isLiked ? 1 : 0
+        guard let url = URL(string: API.favoriteRecipeURL) else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body: [String: Any] = [
+            "recipeId": String(recipeId),
+            "userId": userId,
+            "status": status
+        ]
+
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        URLSession.shared.dataTask(with: request) { data, _, _ in
+            DispatchQueue.main.async {
+                isLiked.toggle()
+            }
+        }.resume()
+    }
+
+    func submitReview() {
+        guard let userId, !newComment.isEmpty, userRating > 0 else { return }
+        guard let url = URL(string: API.rateAndCommentURL) else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body: [String: Any] = [
+            "recipeId": recipeId,
+            "userId": userId,
+            "comment": newComment,
+            "rating": userRating
+        ]
+
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        URLSession.shared.dataTask(with: request) { data, _, _ in
+            DispatchQueue.main.async {
+                newComment = ""
+                userRating = 0
+                didJustSubmitReview = true
+                Task {
+                    await fetchRecipeDetail()
+                }
+            }
+
+        }.resume()
     }
 }
