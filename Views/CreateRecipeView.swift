@@ -1,8 +1,12 @@
-// The user should be able to add their own recipe
-// Should be a ble to upload a picture
-
 import SwiftUI
 import PhotosUI
+
+struct IngredientInput: Identifiable {
+    var id = UUID()
+    var name: String = ""
+    var amount: String = ""
+    var category: Int = 0
+}
 
 struct CreateRecipeView: View {
     @State private var recipeName = ""
@@ -11,22 +15,30 @@ struct CreateRecipeView: View {
     @State private var cookingTime = ""
     @State private var difficulty = 1
     @State private var steps: [RecipeStep] = [RecipeStep(stepDesc: "", stepImg: "")]
+    @State private var ingredients: [IngredientInput] = [IngredientInput()]
     @State private var selectedImage: UIImage?
     @State private var photosPickerItem: PhotosPickerItem?
-    
+    @State private var recipeImageUrl: String = ""
+
+    @State private var userId: Int? = 1 // Replace with real auth
+    @State private var showLoginAlert = false
+    @State private var navigateToLogin = false
+
+    @State private var createdRecipeId: Int?
+    @State private var selectedRecipeId: Int?
+    @State private var navigateToSuccess = false
+    @State private var navigateToDetail = false
+
     let categories = ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack"]
-    // Level 1, 2 easy level 3, 4 medium level 5 hard
-    
-    let difficultyLevels = [1, 2, 3, 4, 5]
-    
+    let difficultyLevels = [1, 2, 3]
+    let difficultyLabels = ["Easy", "Medium", "Hard"]
+
     var body: some View {
         NavigationStack {
             Form {
-                // Recipe Photo Section
                 Section(header: Text("Recipe Photo")) {
                     HStack {
                         Spacer()
-                        
                         if let selectedImage {
                             Image(uiImage: selectedImage)
                                 .resizable()
@@ -43,50 +55,57 @@ struct CreateRecipeView: View {
                                 .background(Color(.systemGray5))
                                 .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
-                        
                         Spacer()
                     }
                     .padding(.vertical)
-                    
+
                     PhotosPicker(selection: $photosPickerItem, matching: .images) {
                         Label("Select Photo", systemImage: "photo")
                     }
                     .onChange(of: photosPickerItem) { _, _ in
                         Task {
-                            if let photosPickerItem,
-                               let data = try? await photosPickerItem.loadTransferable(type: Data.self) {
-                                if let image = UIImage(data: data) {
-                                    selectedImage = image
+                            if let item = photosPickerItem,
+                               let data = try? await item.loadTransferable(type: Data.self),
+                               let image = UIImage(data: data) {
+                                selectedImage = image
+                                if let url = await uploadImage(image: image) {
+                                    recipeImageUrl = url
                                 }
                             }
                             photosPickerItem = nil
                         }
                     }
                 }
-                
-                // Basic Info Section
+
                 Section(header: Text("Basic Information")) {
                     TextField("Recipe Name", text: $recipeName)
-                    
                     Picker("Category", selection: $category) {
-                        ForEach(categories, id: \.self) { category in
-                            Text(category)
-                        }
+                        ForEach(categories, id: \.self) { Text($0) }
                     }
-                    
                     TextField("Cooking Time (e.g. 30min)", text: $cookingTime)
-                    
                     Picker("Difficulty", selection: $difficulty) {
-                        ForEach(difficultyLevels, id: \.self) { level in
-                            Text("\(level)").tag(level)
+                        ForEach(difficultyLevels, id: \.self) { Text(difficultyLabels[$0 - 1]).tag($0) }
+                    }
+                    TextField("Description", text: $description, axis: .vertical).lineLimit(3...)
+                }
+
+                Section(header: Text("Ingredients")) {
+                    ForEach($ingredients) { $ingredient in
+                        HStack {
+                            TextField("Name", text: $ingredient.name)
+                            TextField("Amount", text: $ingredient.amount)
                         }
                     }
-                    
-                    TextField("Description", text: $description, axis: .vertical)
-                        .lineLimit(3...)
+                    Button("Add Ingredient") {
+                        ingredients.append(IngredientInput())
+                    }
+                    if ingredients.count > 1 {
+                        Button("Remove Last", role: .destructive) {
+                            ingredients.removeLast()
+                        }
+                    }
                 }
-                
-                // Steps Section
+
                 Section(header: Text("Preparation Steps")) {
                     ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
                         VStack(alignment: .leading, spacing: 8) {
@@ -97,21 +116,12 @@ struct CreateRecipeView: View {
                             TextField("Step description", text: Binding(
                                 get: { steps[index].stepDesc },
                                 set: { newValue in
-                                    var updatedStep = steps[index]
-                                    updatedStep = RecipeStep(stepDesc: newValue, stepImg: updatedStep.stepImg)
-                                    steps[index] = updatedStep
+                                    var step = steps[index]
+                                    step = RecipeStep(stepDesc: newValue, stepImg: step.stepImg)
+                                    steps[index] = step
                                 }
                             ), axis: .vertical)
                             .lineLimit(3...)
-
-                            if let imageData = Data(base64Encoded: steps[index].stepImg),
-                               let uiImage = UIImage(data: imageData) {
-                                Image(uiImage: uiImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 100, height: 100)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                            }
 
                             PhotosPicker(selection: Binding<PhotosPickerItem?>(
                                 get: { nil },
@@ -120,11 +130,10 @@ struct CreateRecipeView: View {
                                         if let newItem,
                                            let data = try? await newItem.loadTransferable(type: Data.self),
                                            let image = UIImage(data: data),
-                                           let jpegData = image.jpegData(compressionQuality: 0.7) {
-                                            let base64 = jpegData.base64EncodedString()
-                                            var updatedStep = steps[index]
-                                            updatedStep = RecipeStep(stepDesc: updatedStep.stepDesc, stepImg: base64)
-                                            steps[index] = updatedStep
+                                           let url = await uploadImage(image: image) {
+                                            var step = steps[index]
+                                            step = RecipeStep(stepDesc: step.stepDesc, stepImg: url)
+                                            steps[index] = step
                                         }
                                     }
                                 }
@@ -132,87 +141,180 @@ struct CreateRecipeView: View {
                                 Label("Add Step Image", systemImage: "photo")
                             }
                         }
-                        .padding(.vertical, 5)
                     }
 
-                    Button(action: addStep) {
-                        Label("Add Step", systemImage: "plus")
-                    }
-
+                    Button("Add Step") { steps.append(RecipeStep(stepDesc: "", stepImg: "")) }
                     if steps.count > 1 {
-                        Button(action: removeStep) {
-                            Label("Remove Last Step", systemImage: "minus")
-                                .foregroundColor(.red)
-                        }
+                        Button("Remove Last Step", role: .destructive) { steps.removeLast() }
                     }
                 }
-
             }
             .navigationTitle("Create Recipe")
-            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Clear") {
+                        clearForm()
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Save") {
-                        saveRecipe()
+                        if userId == nil {
+                            showLoginAlert = true
+                        } else {
+                            Task { await saveRecipe() }
+                        }
                     }
-                    .disabled(recipeName.isEmpty || steps.contains(where: { $0.stepDesc.isEmpty }))
+                    .disabled(recipeName.isEmpty || recipeImageUrl.isEmpty || steps.contains { $0.stepDesc.isEmpty })
+                }
+            }
+            .alert("Login Required", isPresented: $showLoginAlert) {
+                Button("Go to Login") {
+                    navigateToLogin = true
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Please log in to create a recipe.")
+            }
+            .navigationDestination(isPresented: $navigateToSuccess) {
+                if let id = createdRecipeId {
+                    SuccessScreen(
+                        recipeId: id,
+                        onAddAnother: {
+                            clearForm()
+                            navigateToSuccess = false
+                        },
+                        onView: {
+                            selectedRecipeId = id
+                            navigateToSuccess = false
+                            navigateToDetail = true
+                        }
+                    )
+                }
+            }
+            .navigationDestination(isPresented: $navigateToDetail) {
+                if let id = selectedRecipeId {
+                    RecipeDetailView(recipeId: id)
                 }
             }
         }
     }
-    
-    private func addStep() {
-        steps.append(RecipeStep(stepDesc: "", stepImg: ""))
+
+    private func uploadImage(image: UIImage) async -> String? {
+        guard let data = image.jpegData(compressionQuality: 0.7) else { return nil }
+
+        var request = URLRequest(url: URL(string: API.uploadImageURL)!)
+        request.httpMethod = "POST"
+
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"image.jpg\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.append(data)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+
+        let (responseData, _) = try! await URLSession.shared.upload(for: request, from: body)
+        let decoded = try? JSONDecoder().decode(UploadResponse.self, from: responseData)
+        return decoded?.data.url
     }
-    
-    private func removeStep() {
-        if steps.count > 1 {
-            steps.removeLast()
-        }
-    }
-    
-    private func saveRecipe() {
-        // Convert UIImage to base64 string if needed for your API
-        var imageString = ""
-        if let selectedImage = selectedImage,
-           let imageData = selectedImage.jpegData(compressionQuality: 0.7) {
-            imageString = imageData.base64EncodedString()
-        }
-        
-        // Create the recipe object
-        let newRecipe = Recipe(
-            recipeId: 0, // Will be assigned by server
-            recipeName: recipeName,
-            category: category,
-            rating: 0.0, // Default rating
-            recipePicture: imageString,
-            createTime: getCurrentDateTimeString(),
-            creatorId: 1, // Replace with actual user ID
-            modifyTime: getCurrentDateTimeString(),
-            postTime: nil,
-            recipeType: 1, // Default type
-            status: 1, // Active status
-            description: description.isEmpty ? nil : description,
-            cookingTime: cookingTime.isEmpty ? nil : cookingTime,
-            difficulty: difficulty,
-            steps: steps
-        )
-        
-        // Here you would send the recipe to your backend
-        print("Saving recipe: \(newRecipe)")
-        
-        // API call would go here
-        // await saveRecipeToAPI(recipe: newRecipe)
-    }
-    
-    private func getCurrentDateTimeString() -> String {
+
+    private func saveRecipe() async {
+        guard let userId else { return }
+
         let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        return formatter.string(from: Date())
+        formatter.dateFormat = "MM/dd/yyyy, HH:mm:ss"
+        let now = formatter.string(from: Date())
+
+        let ingredientData = ingredients.map {
+            IngredientForRequest(name: $0.name, amount: $0.amount, category: $0.category)
+        }
+
+        let stepData = steps.map {
+            RecipeStepForRequest(stepDesc: $0.stepDesc, stepImg: $0.stepImg)
+        }
+
+        let payload = CreateRecipeRequest(
+            recipeName: recipeName,
+            category: categories.firstIndex(of: category) ?? 0,
+            recipePicture: recipeImageUrl,
+            postTime: now,
+            recipeType: categories.firstIndex(of: category) ?? 0,
+            description: description,
+            cookingTime: cookingTime,
+            difficulty: difficulty,
+            steps: stepData,
+            ingredients: ingredientData,
+            userId: userId
+        )
+
+        guard let encoded = try? JSONEncoder().encode(payload) else { return }
+        var request = URLRequest(url: URL(string: API.createRecipeURL)!)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = encoded
+
+        let (responseData, _) = try! await URLSession.shared.data(for: request)
+        if let decoded = try? JSONDecoder().decode(CreateRecipeResponse.self, from: responseData) {
+            DispatchQueue.main.async {
+                createdRecipeId = decoded.data.recipeId
+                navigateToSuccess = true
+            }
+        }
+    }
+
+    private func clearForm() {
+        recipeName = ""
+        category = "Dinner"
+        description = ""
+        cookingTime = ""
+        difficulty = 1
+        steps = [RecipeStep(stepDesc: "", stepImg: "")]
+        ingredients = [IngredientInput()]
+        selectedImage = nil
+        recipeImageUrl = ""
     }
 }
 
-// Preview
-#Preview {
-    CreateRecipeView()
+struct SuccessScreen: View {
+    let recipeId: Int
+    let onAddAnother: () -> Void
+    let onView: () -> Void
+
+    var body: some View {
+        VStack(spacing: 24) {
+            Image(systemName: "checkmark.circle.fill")
+                .resizable()
+                .frame(width: 80, height: 80)
+                .foregroundColor(.green)
+                .scaleEffect(1.1)
+                .transition(.scale.combined(with: .opacity))
+                .animation(.easeOut, value: recipeId)
+
+            Text("Recipe Created Successfully!")
+                .font(.title2)
+                .bold()
+
+            HStack(spacing: 24) {
+                Button("Add Another") {
+                    onAddAnother()
+                }
+                .buttonStyle(.bordered)
+
+                Button("View Recipe") {
+                    onView()
+                }
+                .buttonStyle(.borderedProminent)
+            }
+        }
+        .padding()
+    }
+}
+
+private struct CreateRecipeResponse: Decodable {
+    struct DataContent: Decodable {
+        let recipeId: Int
+    }
+    let data: DataContent
 }

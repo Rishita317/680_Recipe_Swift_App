@@ -24,3 +24,12 @@ struct RecipeDetailResponse: Decodable {
     let statusMessage: String
     let data: RecipeDetail
 }
+
+struct UploadResponse: Codable {
+    struct UploadData: Codable {
+        let url: String
+    }
+    let data: UploadData
+    let statusCode: Int
+    let statusMessage: String
+}

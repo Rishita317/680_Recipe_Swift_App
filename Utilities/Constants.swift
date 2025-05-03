@@ -5,10 +5,9 @@
 //  Created by gu xu on 4/29/25.
 //
 
-import Foundation
-
 struct API {
-    static let baseURL = "http://8.153.165.146:5656/api"
+//    static let baseURL = "http://8.153.165.146:5656/api"
+    static let baseURL = "http://localhost:5656/api"
     
     static var randomURL: String {
         return "\(baseURL)/recipe/random"
@@ -26,7 +25,15 @@ struct API {
             return "\(baseURL)/user/register"
         }
 
-        static var loginURL: String {
-            return "\(baseURL)/user/login"
+    static var loginURL: String {
+        return "\(baseURL)/user/login"
+    }
+    
+    static var uploadImageURL: String {
+            return "\(baseURL)/recipe/upload"
         }
+
+    static var createRecipeURL: String {
+        return "\(baseURL)/recipe/create"
+    }
 }
