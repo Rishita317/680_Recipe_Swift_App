@@ -9,6 +9,7 @@ struct IngredientInput: Identifiable {
 }
 
 struct CreateRecipeView: View {
+    @AppStorage("userId") private var userId: Int?
     @State private var recipeName = ""
     @State private var category = "Dinner"
     @State private var description = ""
@@ -20,7 +21,6 @@ struct CreateRecipeView: View {
     @State private var photosPickerItem: PhotosPickerItem?
     @State private var recipeImageUrl: String = ""
 
-    @State private var userId: Int? = 1 // Replace with real auth
     @State private var showLoginAlert = false
     @State private var navigateToLogin = false
 
