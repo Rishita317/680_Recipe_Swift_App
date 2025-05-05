@@ -44,4 +44,8 @@ struct API {
     static var rateAndCommentURL: String {
         return "\(baseURL)/recipe/review"
     }
+    
+    static func uerRecipeURL(for userId: Int) -> String {
+        return "\(baseURL)/user/\(userId)/recipes"
+    }
 }
