@@ -215,9 +215,14 @@ struct CreateRecipeView: View {
         body.append(data)
         body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
 
-        let (responseData, _) = try! await URLSession.shared.upload(for: request, from: body)
-        let decoded = try? JSONDecoder().decode(UploadResponse.self, from: responseData)
-        return decoded?.data.url
+        do {
+            let (responseData, _) = try await URLSession.shared.upload(for: request, from: body)
+            let decoded = try? JSONDecoder().decode(UploadResponse.self, from: responseData)
+            return decoded?.data.url
+        } catch {
+            print("Image upload failed: \(error.localizedDescription)")
+            return nil
+        }
     }
 
     private func saveRecipe() async {
