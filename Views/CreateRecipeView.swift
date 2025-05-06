@@ -164,7 +164,7 @@ struct CreateRecipeView: View {
                             Task { await saveRecipe() }
                         }
                     }
-                    .disabled(recipeName.isEmpty || recipeImageUrl.isEmpty || steps.contains { $0.stepDesc.isEmpty })
+                    .disabled(disableSaveButton)
                 }
             }
             .alert("Login Required", isPresented: $showLoginAlert) {
@@ -223,6 +223,14 @@ struct CreateRecipeView: View {
             print("Image upload failed: \(error.localizedDescription)")
             return nil
         }
+    }
+    
+    private var disableSaveButton: Bool {
+        let hasEmptyStep = steps.contains { $0.stepDesc.isEmpty }
+        print("is name empty: \(recipeName.isEmpty)")
+        print("is image URL empty: \(recipeImageUrl.isEmpty)")
+        print("has empty step: \(hasEmptyStep)")
+        return recipeName.isEmpty || hasEmptyStep //|| recipeImageUrl.isEmpty
     }
 
     private func saveRecipe() async {
