@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 
 struct CookingModeView: View {
     let steps: [RecipeStep]
@@ -7,52 +8,112 @@ struct CookingModeView: View {
     @State private var showConfetti = false
     @State private var particles: [ConfettiParticle] = []
 
+    @State private var timeElapsed: Int = 0
+    @State private var timerRunning = true
+    @State private var timer: Timer?
+
+    private let synthesizer = AVSpeechSynthesizer()
+
+    var formattedTime: String {
+        let minutes = timeElapsed / 60
+        let seconds = timeElapsed % 60
+        return String(format: "%02d:%02d", minutes, seconds)
+    }
+
     var body: some View {
         ZStack {
             Color(.systemBackground).ignoresSafeArea()
 
-            TabView(selection: $currentStep) {
-                ForEach(steps.indices, id: \.self) { i in
-                    VStack(spacing: 30) {
-                        Spacer()
-
-                        Text("Step \(i + 1) of \(steps.count)")
-                            .font(.subheadline)
+            VStack(spacing: 0) {
+                // Time Tracker Bar
+                HStack {
+                    HStack(spacing: 6) {
+                        Image(systemName: "timer")
                             .foregroundColor(.gray)
-
-                        Text(steps[i].stepDesc)
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .multilineTextAlignment(.center)
-                            .padding()
-
-                        Spacer()
-
-                        if i == steps.count - 1 {
-                            Button("🎉 Done Cooking!") {
-                                withAnimation {
-                                    showConfetti = true
-                                    spawnConfetti()
-                                }
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                    showConfetti = false
-                                    dismiss()
-                                }
-                            }
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.green)
-                            .foregroundColor(.white)
-                            .cornerRadius(12)
-                            .padding(.horizontal)
-                            .padding(.bottom, 40)
-                        }
+                        Text("Time Spent")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                        Text(formattedTime)
+                            .font(.system(.body, design: .monospaced).bold())
+                            .foregroundColor(.blue)
                     }
-                    .padding()
-                    .tag(i)
+
+                    Spacer()
+
+                    Button(action: toggleTimer) {
+                        HStack(spacing: 4) {
+                            Image(systemName: timerRunning ? "pause.fill" : "play.fill")
+                            Text(timerRunning ? "Pause" : "Resume")
+                        }
+                        .font(.caption)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                    }
                 }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(.systemGray5))
+                        .shadow(radius: 1)
+                )
+                .padding([.top, .horizontal])
+
+                TabView(selection: $currentStep) {
+                    ForEach(steps.indices, id: \.self) { i in
+                        VStack(spacing: 30) {
+                            Spacer()
+
+                            Text("Step \(i + 1) of \(steps.count)")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+
+                            Text(steps[i].stepDesc)
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                                .multilineTextAlignment(.center)
+                                .padding()
+
+                            Button(action: {
+                                speakStep(steps[i].stepDesc)
+                            }) {
+                                Label("Read Aloud", systemImage: "speaker.wave.2.fill")
+                                    .font(.caption)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(Color.blue.opacity(0.2))
+                                    .cornerRadius(8)
+                            }
+
+                            Spacer()
+
+                            if i == steps.count - 1 {
+                                Button("🎉 Done Cooking!") {
+                                    withAnimation {
+                                        showConfetti = true
+                                        spawnConfetti()
+                                    }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                        showConfetti = false
+                                        dismiss()
+                                    }
+                                }
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.green)
+                                .foregroundColor(.white)
+                                .cornerRadius(12)
+                                .padding(.horizontal)
+                                .padding(.bottom, 40)
+                            }
+                        }
+                        .padding()
+                        .tag(i)
+                    }
+                }
+                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
             }
-            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
 
             if showConfetti {
                 GeometryReader { geo in
@@ -77,11 +138,41 @@ struct CookingModeView: View {
         .onAppear {
             UIPageControl.appearance().currentPageIndicatorTintColor = UIColor.systemBlue
             UIPageControl.appearance().pageIndicatorTintColor = UIColor.systemGray4
+            startTimer()
+        }
+        .onDisappear {
+            timer?.invalidate()
         }
     }
 
-    // MARK: - Confetti Helpers
+    // MARK: - Timer Logic
+    func startTimer() {
+        timerRunning = true
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            timeElapsed += 1
+        }
+    }
 
+    func toggleTimer() {
+        if timerRunning {
+            timer?.invalidate()
+        } else {
+            startTimer()
+        }
+        timerRunning.toggle()
+    }
+
+    // MARK: - Text-to-Speech
+    func speakStep(_ text: String) {
+        if synthesizer.isSpeaking {
+            synthesizer.stopSpeaking(at: .immediate)
+        }
+        let utterance = AVSpeechUtterance(string: text)
+        utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+        synthesizer.speak(utterance)
+    }
+
+    // MARK: - Confetti
     func spawnConfetti() {
         particles = (0..<80).map { _ in
             ConfettiParticle(
