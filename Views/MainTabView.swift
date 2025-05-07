@@ -11,17 +11,23 @@ struct MainTabView: View {
                 }
                 .tag(0)
 
+            FavoritesView()
+                .tabItem {
+                    Label("Favorites", systemImage: "heart")
+                }
+                .tag(1)
+
             CreateRecipeView()
                 .tabItem {
                     Label("Create", systemImage: "plus.circle")
                 }
-                .tag(1)
+                .tag(2)
 
             ProfileView(selectedTab: $selectedTab)
                 .tabItem {
                     Label("Profile", systemImage: "person.crop.circle")
                 }
-                .tag(2)
+                .tag(3)
         }
     }
 }

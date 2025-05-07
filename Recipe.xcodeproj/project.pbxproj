@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4E1F2A9C2DCB32B20080BF11 /* FavoritesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1F2A9B2DCB32AC0080BF11 /* FavoritesView.swift */; };
+		4E1F2AA02DCB4D5F0080BF11 /* CookingModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1F2A9F2DCB4D5A0080BF11 /* CookingModeView.swift */; };
 		542F65C32DC98904000BFA11 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 542F65C22DC988EE000BFA11 /* README.md */; };
 		D2A340002DC0189A0076B7F8 /* RecipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2A33FFF2DC0189A0076B7F8 /* RecipeView.swift */; };
 		D2A3401D2DC07AD70076B7F8 /* Preview Content in Resources */ = {isa = PBXBuildFile; fileRef = D2A3401A2DC07AD70076B7F8 /* Preview Content */; };
@@ -29,6 +31,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		4E1F2A9B2DCB32AC0080BF11 /* FavoritesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesView.swift; sourceTree = "<group>"; };
+		4E1F2A9F2DCB4D5A0080BF11 /* CookingModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookingModeView.swift; sourceTree = "<group>"; };
 		542F65C22DC988EE000BFA11 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		D2A33FFA2DC0189A0076B7F8 /* Recipe.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Recipe.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D2A33FFF2DC0189A0076B7F8 /* RecipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeView.swift; sourceTree = "<group>"; };
@@ -89,6 +93,8 @@
 		D2A3400B2DC0781E0076B7F8 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				4E1F2A9F2DCB4D5A0080BF11 /* CookingModeView.swift */,
+				4E1F2A9B2DCB32AC0080BF11 /* FavoritesView.swift */,
 				D2A33FFF2DC0189A0076B7F8 /* RecipeView.swift */,
 				D2A340242DC07C280076B7F8 /* RecipeCardView.swift */,
 				D2A340262DC07C590076B7F8 /* RecipeSearchResultView.swift */,
@@ -199,6 +205,7 @@
 				D2A3402D2DC1C8EF0076B7F8 /* RecipeDetailView.swift in Sources */,
 				D2A340212DC07BEC0076B7F8 /* Recipe.swift in Sources */,
 				D2A340272DC07C590076B7F8 /* RecipeSearchResultView.swift in Sources */,
+				4E1F2AA02DCB4D5F0080BF11 /* CookingModeView.swift in Sources */,
 				D2A340252DC07C280076B7F8 /* RecipeCardView.swift in Sources */,
 				D2A3403B2DC1D90D0076B7F8 /* ProfileView.swift in Sources */,
 				D2A340332DC1CE5A0076B7F8 /* LoginView.swift in Sources */,
@@ -206,6 +213,7 @@
 				D2A340292DC1C25F0076B7F8 /* Constants.swift in Sources */,
 				D2A340002DC0189A0076B7F8 /* RecipeView.swift in Sources */,
 				D2A340372DC1D8940076B7F8 /* MainTabView.swift in Sources */,
+				4E1F2A9C2DCB32B20080BF11 /* FavoritesView.swift in Sources */,
 				D2A3402F2DC1CDE80076B7F8 /* User.swift in Sources */,
 				D2A340402DC5E1E10076B7F8 /* APIRequest.swift in Sources */,
 				D2A3401F2DC07AD70076B7F8 /* RecipeApp.swift in Sources */,

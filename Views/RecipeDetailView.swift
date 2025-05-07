@@ -9,186 +9,211 @@ struct RecipeDetailView: View {
     @State private var isLiked: Bool = false
     @State private var newComment: String = ""
     @State private var didJustSubmitReview = false
+    @State private var showCookingMode = false
     @AppStorage("userId") private var userId: Int?
 
     var body: some View {
-        VStack {
-            if isLoading {
-                ProgressView("Loading...")
-                    .padding()
-            } else if let recipe = recipeDetail {
-                ScrollView {
-                    VStack(spacing: 20) {
-                        if let url = URL(string: recipe.recipePicture) {
-                            AsyncImage(url: url) { phase in
-                                if let image = phase.image {
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                } else if phase.error != nil {
-                                    Color.red
-                                } else {
-                                    Color.gray.opacity(0.1)
-                                }
-                            }
-                            .frame(height: 200)
-                            .clipped()
-                            .cornerRadius(15)
-                            .padding(.horizontal)
-                        }
-
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text(recipe.recipeName)
-                                    .font(.title)
-                                    .bold()
-                                Spacer()
-                                Button {
-                                    toggleFavorite()
-                                } label: {
-                                    Image(systemName: isLiked ? "heart.fill" : "heart")
-                                        .foregroundColor(isLiked ? .red : .gray)
-                                }
-                                Button {
-                                    shareRecipe(recipe)
-                                } label: {
-                                    Image(systemName: "square.and.arrow.up")
-                                }
-                            }
-                            
-                            if recipe.rating > 0 {
-                                HStack(spacing: 4) {
-                                    ForEach(1...5, id: \.self) { star in
-                                        Image(systemName: star <= Int(recipe.rating.rounded()) ? "star.fill" : "star")
-                                            .resizable()
-                                            .frame(width: 16, height: 16)
-                                            .foregroundColor(.yellow)
-                                    }
-                                    Text(String(format: "%.1f", recipe.rating))
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                }
-                            }
-
-
-                            if let description = recipe.description {
-                                Text(description)
-                                    .font(.body)
-                                    .foregroundColor(.secondary)
-                            }
-
-                            HStack(spacing: 16) {
-                                if let cookingTime = recipe.cookingTime {
-                                    Label(cookingTime, systemImage: "clock")
-                                }
-                                if let difficulty = recipe.difficulty {
-                                    let label = ["Easy", "Medium", "Hard"][max(0, min(2, difficulty - 1))]
-                                    Label(label, systemImage: "flame.fill")
-                                }
-                            }
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                        }
-                        .padding(.horizontal)
-
-                        Divider()
-
-                        if let ingredients = recipe.ingredients {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("🧂 Ingredients")
-                                    .font(.headline)
-                                ForEach(ingredients, id: \.ingredientId) { ingredient in
-                                    Text("• \(ingredient.amount) \(ingredient.ingredientName)")
-                                }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(12)
-                            .padding(.horizontal)
-
-                        }
-
-                        if let steps = recipe.steps {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("📋 Steps")
-                                    .font(.headline)
-                                ForEach(steps.indices, id: \.self) { i in
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text("Step \(i + 1):").bold()
-                                        Text(steps[i].stepDesc)
-                                    }
-                                    .padding(.vertical, 4)
-                                }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(12)
-                            .padding(.horizontal)
-                        }
-
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("⭐️ Leave a Review")
-                                .font(.headline)
-
-                            HStack {
-                                ForEach(1...5, id: \ .self) { star in
-                                    Image(systemName: star <= userRating ? "star.fill" : "star")
-                                        .resizable()
-                                        .frame(width: 24, height: 24)
-                                        .foregroundColor(.yellow)
-                                        .onTapGesture {
-                                            userRating = star
-                                        }
-                                }
-                            }
-
-                            TextField("Write a comment...", text: $newComment, axis: .vertical)
-                                .textFieldStyle(.roundedBorder)
-                                .lineLimit(2...4)
-
-                            Button("Submit Review") {
-                                submitReview()
-                            }
-                            .buttonStyle(.borderedProminent)
-                        }
+        ZStack(alignment: .bottom) {
+            VStack {
+                if isLoading {
+                    ProgressView("Loading...")
                         .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(12)
-                        .padding(.horizontal)
+                } else if let recipe = recipeDetail {
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            if let url = URL(string: recipe.recipePicture) {
+                                AsyncImage(url: url) { phase in
+                                    if let image = phase.image {
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                    } else if phase.error != nil {
+                                        Color.red
+                                    } else {
+                                        Color.gray.opacity(0.1)
+                                    }
+                                }
+                                .frame(height: 200)
+                                .clipped()
+                                .cornerRadius(15)
+                                .padding(.horizontal)
+                            }
 
-                        if let reviews = recipe.reviews {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("💬 Reviews")
-                                    .font(.headline)
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Text(recipe.recipeName)
+                                        .font(.title)
+                                        .bold()
+                                    Spacer()
+                                    Button {
+                                        toggleFavorite()
+                                    } label: {
+                                        Image(systemName: isLiked ? "heart.fill" : "heart")
+                                            .foregroundColor(isLiked ? .red : .gray)
+                                    }
+                                    Button {
+                                        shareRecipe(recipe)
+                                    } label: {
+                                        Image(systemName: "square.and.arrow.up")
+                                    }
+                                }
 
-                                ForEach(reviews, id: \ .reviewId) { review in
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        HStack {
-                                            Text(review.userName).bold()
-                                            Spacer()
-                                            Text("⭐️ \(review.rating)")
+                                if recipe.rating > 0 {
+                                    HStack(spacing: 4) {
+                                        ForEach(1...5, id: \.self) { star in
+                                            Image(systemName: star <= Int(recipe.rating.rounded()) ? "star.fill" : "star")
+                                                .resizable()
+                                                .frame(width: 16, height: 16)
                                                 .foregroundColor(.yellow)
                                         }
-                                        Text(review.comment)
-                                            .foregroundColor(.secondary)
+                                        Text(String(format: "%.1f", recipe.rating))
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
                                     }
-                                    .padding()
-                                    .background(Color.white)
-                                    .cornerRadius(10)
-                                    .shadow(radius: 1)
                                 }
+
+                                if let description = recipe.description {
+                                    Text(description)
+                                        .font(.body)
+                                        .foregroundColor(.secondary)
+                                }
+
+                                HStack(spacing: 16) {
+                                    if let cookingTime = recipe.cookingTime {
+                                        Label(cookingTime, systemImage: "clock")
+                                    }
+                                    if let difficulty = recipe.difficulty {
+                                        let label = ["Easy", "Medium", "Hard"][max(0, min(2, difficulty - 1))]
+                                        Label(label, systemImage: "flame.fill")
+                                    }
+                                }
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
                             }
                             .padding(.horizontal)
+
+                            Divider()
+
+                            if let ingredients = recipe.ingredients {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("🧂 Ingredients")
+                                        .font(.headline)
+                                    ForEach(ingredients, id: \.ingredientId) { ingredient in
+                                        Text("• \(ingredient.amount) \(ingredient.ingredientName)")
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding()
+                                .background(Color(.systemGray6))
+                                .cornerRadius(12)
+                                .padding(.horizontal)
+                            }
+
+                            if let steps = recipe.steps {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("📋 Steps")
+                                        .font(.headline)
+                                    ForEach(steps.indices, id: \.self) { i in
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text("Step \(i + 1):").bold()
+                                            Text(steps[i].stepDesc)
+                                        }
+                                        .padding(.vertical, 4)
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding()
+                                .background(Color(.systemGray6))
+                                .cornerRadius(12)
+                                .padding(.horizontal)
+                            }
+
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("⭐️ Leave a Review")
+                                    .font(.headline)
+
+                                HStack {
+                                    ForEach(1...5, id: \.self) { star in
+                                        Image(systemName: star <= userRating ? "star.fill" : "star")
+                                            .resizable()
+                                            .frame(width: 24, height: 24)
+                                            .foregroundColor(.yellow)
+                                            .onTapGesture {
+                                                userRating = star
+                                            }
+                                    }
+                                }
+
+                                TextField("Write a comment...", text: $newComment, axis: .vertical)
+                                    .textFieldStyle(.roundedBorder)
+                                    .lineLimit(2...4)
+
+                                Button("Submit Review") {
+                                    submitReview()
+                                }
+                                .buttonStyle(.borderedProminent)
+                            }
+                            .padding()
+                            .background(Color(.systemGray6))
+                            .cornerRadius(12)
+                            .padding(.horizontal)
+                            if let reviews = recipe.reviews {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Text("💬 Reviews")
+                                        .font(.headline)
+
+                                    ForEach(reviews, id: \.reviewId) { review in
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            HStack {
+                                                Text(review.userName).bold()
+                                                Spacer()
+                                                Label("\(review.rating)", systemImage: "star.fill")
+                                                    .foregroundColor(.yellow)
+                                                    .font(.subheadline)
+                                            }
+                                            Text(review.comment)
+                                                .foregroundColor(.primary)
+                                        }
+                                        .padding()
+                                        .background(Color(.systemGray6))
+                                        .cornerRadius(12)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                                        )
+                                    }
+                                }
+                                .padding(.horizontal)
+                            }
                         }
+                        .padding(.bottom, 80) // leave space for floating button
                     }
-                    .padding(.bottom)
+                } else if hasError {
+                    Text("Failed to load recipe details.")
+                        .foregroundColor(.red)
+                        .padding()
                 }
-            } else if hasError {
-                Text("Failed to load recipe details.")
-                    .foregroundColor(.red)
-                    .padding()
+            }
+
+            // Floating Button
+            if let steps = recipeDetail?.steps {
+                Button(action: {
+                    showCookingMode = true
+                }) {
+                    Label("Start Cooking Mode", systemImage: "play.fill")
+                        .font(.headline)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.orange)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                        .padding(.horizontal)
+                        .shadow(radius: 4)
+                }
+                .padding(.bottom, 10)
+                .sheet(isPresented: $showCookingMode) {
+                    CookingModeView(steps: steps)
+                }
             }
         }
         .navigationTitle("Recipe Details")
