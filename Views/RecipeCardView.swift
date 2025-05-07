@@ -36,6 +36,30 @@ struct RecipeCardView: View {
                     Text(recipe.recipeName)
                         .font(.headline)
 
+                    // Pills section
+                    HStack(spacing: 8) {
+                        if let difficulty = recipe.difficulty {
+                            let label = ["Easy", "Medium", "Hard"][max(0, min(2, difficulty - 1))]
+                            Text("🔥 \(label)")
+                                .font(.caption2)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.orange.opacity(0.15))
+                                .foregroundColor(.orange)
+                                .clipShape(Capsule())
+                        }
+
+                        if let time = recipe.cookingTime, !time.isEmpty {
+                            Text("⏱ \(time)")
+                                .font(.caption2)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.blue.opacity(0.15))
+                                .foregroundColor(.blue)
+                                .clipShape(Capsule())
+                        }
+                    }
+
                     Text(recipe.description ?? "")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
