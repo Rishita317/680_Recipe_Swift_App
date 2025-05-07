@@ -7,6 +7,7 @@ struct ProfileView: View {
     @AppStorage("userName") var userName: String = ""
     @AppStorage("userEmail") var userEmail: String = ""
     @AppStorage("userId") private var userId: Int?
+    @AppStorage("isDarkMode") private var isDarkMode = false
 
     @State private var myRecipes: [Recipe] = []
     @State private var isLoading = true
@@ -105,6 +106,13 @@ struct ProfileView: View {
             Text(userEmail)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
+            
+            Toggle(isOn: $isDarkMode) {
+                Label("Dark Mode", systemImage: "moon.fill")
+            }
+            .toggleStyle(SwitchToggleStyle(tint: .orange))
+            .padding(.horizontal)
+
         }
     }
 

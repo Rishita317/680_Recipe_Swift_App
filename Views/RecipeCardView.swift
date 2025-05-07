@@ -56,7 +56,7 @@ struct RecipeCardView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding()
-            .background(Color.white)
+            .background(Color(.systemBackground))
             .cornerRadius(15)
             .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
         }
