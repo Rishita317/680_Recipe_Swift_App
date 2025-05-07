@@ -11,6 +11,8 @@ struct ProfileView: View {
     @State private var myRecipes: [Recipe] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
+    @State private var recentlyViewed: [Recipe] = []
+    
 
     var body: some View {
         NavigationStack {
@@ -56,12 +58,27 @@ struct ProfileView: View {
                             .font(.headline)
                             .padding(.horizontal)
 
-                        ForEach(myRecipes, id: \.recipeId) { recipe in
-                            RecipeCardView(recipe: recipe)
-                                .padding(.horizontal)
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) {
+                                ForEach(myRecipes, id: \.recipeId) { recipe in
+                                    RecipeCardView(recipe: recipe)
+                                        .frame(width: 200)
+                                }
+                            }
+                            .padding(.horizontal)
                         }
                     }
                 }
+
+                Button("Log Out") {
+                    isLoggedIn = false
+                    userName = ""
+                    userEmail = ""
+                    userId = nil
+                }
+                .font(.body)
+                .foregroundColor(.red)
+                .padding(.top)
             }
             .padding(.vertical)
         }
@@ -88,21 +105,12 @@ struct ProfileView: View {
             Text(userEmail)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
-
-            Button("Log Out") {
-                isLoggedIn = false
-                userName = ""
-                userEmail = ""
-                userId = nil
-            }
-            .foregroundColor(.red)
-            .padding(.top, 8)
         }
     }
 
     private var emptyRecipePrompt: some View {
         Button {
-            selectedTab = 1 // 切换到 Create tab
+            selectedTab = 1 // Switch to Create tab
         } label: {
             VStack(spacing: 15) {
                 Image(systemName: "plus.circle")
