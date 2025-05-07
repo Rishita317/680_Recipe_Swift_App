@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RecipeCardView: View {
     var recipe: Recipe
+    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         NavigationLink(destination: RecipeDetailView(recipeId: recipe.recipeId)) {
@@ -36,30 +37,6 @@ struct RecipeCardView: View {
                     Text(recipe.recipeName)
                         .font(.headline)
 
-                    // Pills section
-                    HStack(spacing: 8) {
-                        if let difficulty = recipe.difficulty {
-                            let label = ["Easy", "Medium", "Hard"][max(0, min(2, difficulty - 1))]
-                            Text("🔥 \(label)")
-                                .font(.caption2)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color.orange.opacity(0.15))
-                                .foregroundColor(.orange)
-                                .clipShape(Capsule())
-                        }
-
-                        if let time = recipe.cookingTime, !time.isEmpty {
-                            Text("⏱ \(time)")
-                                .font(.caption2)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color.blue.opacity(0.15))
-                                .foregroundColor(.blue)
-                                .clipShape(Capsule())
-                        }
-                    }
-
                     Text(recipe.description ?? "")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
@@ -82,7 +59,19 @@ struct RecipeCardView: View {
             .padding()
             .background(Color(.systemBackground))
             .cornerRadius(15)
-            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+            .overlay(
+                RoundedRectangle(cornerRadius: 15)
+                    .stroke(
+                        colorScheme == .dark ? Color.white.opacity(0.15) : Color.clear,
+                        lineWidth: 1.5
+                    )
+            )
+            .shadow(
+                color: colorScheme == .dark ? Color.white.opacity(0.2) : Color.black.opacity(0.1),
+                radius: colorScheme == .dark ? 8 : 5,
+                x: 0,
+                y: 3
+            )
         }
     }
 }
