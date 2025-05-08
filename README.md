@@ -5,7 +5,7 @@
 ## Group Members
 
 - Xu Gu (923662217)
-- Rishita Meharishi
+- Rishita Meharishi (922249026)
 - Pankhuri Khare
 
 ## Description
