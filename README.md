@@ -6,7 +6,7 @@
 
 - Xu Gu (923662217)
 - Rishita Meharishi (922249026)
-- Pankhuri Khare
+- Pankuri Khare (921385202)
 
 ## Description
 
